@@ -1,0 +1,31 @@
+# needsrootforbuild
+
+Url:            http://www.suse.com/
+Name:           __NAME__
+Summary:        SUSE Linux Enterprise Server __SLE_VERSION__ image for Docker
+Version:        __VERSION__
+Release:        __RELEASE__
+Group:          System/Management
+License:        SUSE-EULA
+Source0:        __SOURCE__
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+
+%description
+This package contains the official SUSE Linux Enterprise Server __SLE_VERSION__
+image for Docker.
+
+%prep
+
+%build
+
+%install
+install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/suse-docker-images
+cp %{SOURCE0} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-, root, root)
+%{_datadir}/suse-docker-images
+
