@@ -23,6 +23,7 @@ SUFFIX="-Build*${EXT}"
 
 shopt -s nullglob
 IMAGE=$(echo ${PREFIX}*${SUFFIX})
+PACKAGES=$(echo ${PREFIX}*.packages)
 
 if [ -z "$IMAGE" ]; then
     echo "Couldn't find anything in $IMAGE_DIR matching ${PREFIX}*${SUFFIX}."
@@ -58,6 +59,13 @@ sed -e "s/__NAME__/$NAME/g" \
     -e "s/__SLE_VERSION__/$SLE_VERSION/g" \
     < $BUILD_DIR/image.spec.in \
     > $BUILD_DIR/image.spec
+
+changelog-generator --new-packages $PACKAGES \
+  --old-packages /usr/share/changelog-generator-data/old.packages \
+  --changelog /usr/share/changelog-generator-data/old.changes > $BUILD_DIR/image.changes
+
+cat $BUILD_DIR/image.changes >> $BUILD_DIR/image.spec
+mv $BUILD_DIR/image.changes $IMAGE_DIR
 
 # Local builds have the file already in place, that's not true on IBS
 if [ ! -f $TOPDIR/SOURCES/$IMAGE ]; then

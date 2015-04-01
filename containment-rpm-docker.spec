@@ -25,6 +25,7 @@ Summary:        Wraps OBS/kiwi-built images in rpms
 Url:            http://git.suse.de/?p=docker/containment-rpm-docker.git
 Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
+Requires:       rubygem-changelog-generator
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
