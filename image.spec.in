@@ -9,6 +9,7 @@ Group:          System/Management
 License:        SUSE-EULA
 Source0:        __SOURCE__
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Recommends:     sle2docker
 
 %description
 This package contains the official SUSE Linux Enterprise Server __SLE_VERSION__
