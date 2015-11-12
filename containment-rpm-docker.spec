@@ -22,7 +22,7 @@ Version:        1.2.0
 Release:        0
 License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
-Url:            http://git.suse.de/?p=docker/containment-rpm-docker.git
+Url:            https://gitlab.suse.de/docker/containment-rpm-docker
 Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
 BuildRequires:  filesystem
