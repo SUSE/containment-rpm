@@ -61,8 +61,8 @@ sed -e "s/__NAME__/$NAME/g" \
     > $BUILD_DIR/image.spec
 
 changelog-generator --new-packages $PACKAGES \
-  --old-packages /usr/share/changelog-generator-data/old.packages \
-  --changelog /usr/share/changelog-generator-data/old.changes > $BUILD_DIR/image.changes
+  --old-packages /usr/share/changelog-generator-data/old.packages.$ARCH \
+  --changelog /usr/share/changelog-generator-data/old.changes.$ARCH > $BUILD_DIR/image.changes
 
 cat $BUILD_DIR/image.changes >> $BUILD_DIR/image.spec
 mv $BUILD_DIR/image.changes $IMAGE_DIR
