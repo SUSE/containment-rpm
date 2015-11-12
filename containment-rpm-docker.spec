@@ -18,17 +18,22 @@
 # norootforbuild
 
 Name:           containment-rpm-docker
-Version:        1.0.0
+Version:        1.1.0
 Release:        0
 License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
 Url:            http://git.suse.de/?p=docker/containment-rpm-docker.git
 Group:          System/Management
 Source:         %{name}-%{version}.tar.bz2
-Requires:       rubygem-changelog-generator
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
+%if 0%{?suse_version} >= 1230
+Requires:       rubygem(changelog_generator)
+%else
+Requires:       rubygem-changelog_generator
+%endif
+Requires:       changelog-generator-data
 
 %description
 OBS kiwi_post_run hook to wrap a kiwi-produced image in an rpm package.
