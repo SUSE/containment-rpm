@@ -72,6 +72,22 @@ if [ ! -f $TOPDIR/SOURCES/$IMAGE ]; then
   ln $IMAGE $TOPDIR/SOURCES
 fi
 
+# Make sure /usr/src/packages/* dirs exist
+if [ ! -f $TOPDIR/BUILD ]; then
+  echo "Create BUILD dir"
+  mkdir -p $TOPDIR/BUILD
+fi
+
+if [ ! -f $TOPDIR/SRPMS ]; then
+  echo "Create SRPMS dir"
+  mkdir -p $TOPDIR/SRPMS
+fi
+
+if [ ! -f $TOPDIR/RPMS/$ARCH ]; then
+  echo "Create SRPMS dir"
+  mkdir -p $TOPDIR/RPMS/$ARCH
+fi
+
 rpmbuild -ba $BUILD_DIR/image.spec
 
 # required for the BS to find the rpm, because it is
