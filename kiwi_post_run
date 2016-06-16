@@ -37,7 +37,7 @@ SLE_VERSION="${IMAGE#sles}"
 SLE_VERSION="${SLE_VERSION%%-docker.$ARCH*$EXT}"
 
 NAME="sles${SLE_VERSION}-docker-image"
-RELEASE=$(date +%Y%m%d%H%M%S)
+RELEASE=$(date +%Y%m%d)
 
 VERSION="${IMAGE#$PREFIX}"
 VERSION="${VERSION%%$SUFFIX}"
