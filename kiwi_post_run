@@ -10,13 +10,25 @@ BUILD_DIR=/usr/lib/build
 
 cd $IMAGE_DIR
 
+
+# Setting default for SPEC_IN
+SPEC_IN=$BUILD_DIR/image.spec.in
+
+# Overwrite default for SPEC_IN if _image.spec.in
+# exists in sources dir
+if [ -f $TOPDIR/SOURCES/_image.spec.in ];then
+    SPEC_IN=$TOPDIR/SOURCES/_image.spec.in
+fi
+
+echo "Using $SPEC_IN as spec file template"
+
 # Local build:
 # sles12-docker.x86_64-1.0.0-Build.tar.xz
 # OBS build:
 # sles12-docker.x86_64-1.0.0-Build5.2.tar.xz
 
 
-EXT="tar.xz"
+EXT=".tar.xz"
 ARCH=$( rpm --eval '%{_arch}')
 PREFIX="sles*-docker.${ARCH}-"
 SUFFIX="-Build*${EXT}"
@@ -40,6 +52,7 @@ NAME="sles${SLE_VERSION}-docker-image"
 RELEASE=$(date +%Y%m%d)
 
 VERSION="${IMAGE#$PREFIX}"
+IMAGE_NAME="${IMAGE%%$EXT}"
 VERSION="${VERSION%%$SUFFIX}"
 if [ -z "$VERSION" ]; then
     echo "Local build detected"
@@ -51,13 +64,15 @@ fi
 echo "name $NAME"
 echo "version $VERSION"
 echo "release $RELEASE"
+echo "image_name $IMAGE_NAME"
 
 sed -e "s/__NAME__/$NAME/g" \
     -e "s/__VERSION__/$VERSION/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
     -e "s/__SOURCE__/$IMAGE/g" \
     -e "s/__SLE_VERSION__/$SLE_VERSION/g" \
-    < $BUILD_DIR/image.spec.in \
+    -e "s/__IMAGE_NAME__/$IMAGE_NAME/g" \
+    < $SPEC_IN \
     > $BUILD_DIR/image.spec
 
 changelog-generator --new-packages $PACKAGES \
