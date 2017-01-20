@@ -36,10 +36,12 @@ echo "Using $SPEC_IN as spec file template"
 
 EXT=".tar.xz"
 ARCH=$( rpm --eval '%{_arch}')
-PREFIX="sles*-docker.${ARCH}-"
+PREFIX="@(sles|openSUSE)*-docker.${ARCH}-"
 SUFFIX="-Build*${EXT}"
 
 shopt -s nullglob
+shopt -s extglob
+
 IMAGE=$(echo ${PREFIX}*${SUFFIX})
 PACKAGES=$(echo ${PREFIX}*.packages)
 
@@ -51,10 +53,17 @@ fi
 
 echo "Attempting to wrap $IMAGE in a containment rpm ..."
 
-SLE_VERSION="${IMAGE#sles}"
-SLE_VERSION="${SLE_VERSION%%-docker.$ARCH*$EXT}"
+declare -A SUSE_PRODUCT_MAP
 
-NAME="sles${SLE_VERSION}-docker-image"
+SUSE_PRODUCT_MAP[sles]="SUSE Linux Enterprise Server"
+SUSE_PRODUCT_MAP[openSUSE]="openSUSE"
+
+SUSE_VERSION="${IMAGE#@(sles|openSUSE)}"
+SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
+SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|openSUSE).*/$1/')
+SUSE_PRODUCT_NAME=${SUSE_PRODUCT_MAP[$SUSE_PRODUCT]}
+
+NAME="${SUSE_PRODUCT}${SUSE_VERSION}-docker-image"
 RELEASE=$(date +%Y%m%d)
 
 VERSION="${IMAGE#$PREFIX}"
@@ -72,11 +81,16 @@ echo "version $VERSION"
 echo "release $RELEASE"
 echo "image_name $IMAGE_NAME"
 
+
+# keep __SLE_VERSION__ in there for backwards compatiblity
+# with older spec file templates
 sed -e "s/__NAME__/$NAME/g" \
     -e "s/__VERSION__/$VERSION/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
     -e "s/__SOURCE__/$IMAGE/g" \
-    -e "s/__SLE_VERSION__/$SLE_VERSION/g" \
+    -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
+    -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
+    -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
     -e "s/__IMAGE_NAME__/$IMAGE_NAME/g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
