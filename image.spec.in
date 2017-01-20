@@ -2,7 +2,7 @@
 
 Url:            http://www.suse.com/
 Name:           __NAME__
-Summary:        SUSE Linux Enterprise Server __SLE_VERSION__ image for Docker
+Summary:        __SUSE_PRODUCT_NAME__ __SUSE_VERSION__ image for Docker
 Version:        __VERSION__
 Release:        __RELEASE__
 Group:          System/Management
@@ -12,7 +12,7 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Recommends:     sle2docker
 
 %description
-This package contains the official SUSE Linux Enterprise Server __SLE_VERSION__
+This package contains the official __SUSE_PRODUCT_NAME__ __SUSE_VERSION__
 image for Docker.
 
 %prep
