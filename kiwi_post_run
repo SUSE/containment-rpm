@@ -36,7 +36,7 @@ echo "Using $SPEC_IN as spec file template"
 
 EXT=".tar.xz"
 ARCH=$( rpm --eval '%{_arch}')
-PREFIX="@(sles|opensuse)*-docker.${ARCH}-"
+PREFIX="@(sles|opensuse|OBS)*-docker.${ARCH}-"
 SUFFIX="-Build*${EXT}"
 
 shopt -s nullglob
@@ -57,10 +57,11 @@ declare -A SUSE_PRODUCT_MAP
 
 SUSE_PRODUCT_MAP[sles]="SUSE Linux Enterprise Server"
 SUSE_PRODUCT_MAP[opensuse]="openSUSE"
+SUSE_PRODUCT_MAP[OBS]="Open Build Service"
 
-SUSE_VERSION="${IMAGE#@(sles|opensuse)}"
+SUSE_VERSION="${IMAGE#@(sles|opensuse|OBS)}"
 SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
-SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse).*/$1/')
+SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse|OBS).*/$1/')
 SUSE_PRODUCT_NAME=${SUSE_PRODUCT_MAP[$SUSE_PRODUCT]}
 
 NAME="${SUSE_PRODUCT}${SUSE_VERSION}-docker-image"
