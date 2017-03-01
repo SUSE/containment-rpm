@@ -6,6 +6,12 @@ set -u
 : ${TOPDIR:=/usr/src/packages}
 
 IMAGE_DIR=$TOPDIR/KIWI
+
+# new path for python based kiwi
+if [ -d $TOPDIR/KIWI-docker ];then
+  IMAGE_DIR=$TOPDIR/KIWI-docker
+fi
+
 BUILD_DIR=/usr/lib/build
 
 cd $IMAGE_DIR
