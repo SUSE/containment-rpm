@@ -51,7 +51,9 @@ IMAGE=$(echo ${PREFIX}*${SUFFIX})
 PACKAGES=$(echo ${PREFIX}*.packages)
 
 if [ -z "$IMAGE" ]; then
-    echo "Couldn't find anything in $IMAGE_DIR matching ${PREFIX}*${SUFFIX}."
+    echo "Couldn't find anything in "`pwd`" matching ${PREFIX}*${SUFFIX}."
+    echo "Content of directory:"
+    ls -1
     echo "Will skip containment rpm wrapping steps."
     exit 0
 fi
