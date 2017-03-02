@@ -6,10 +6,18 @@ set -u
 : ${TOPDIR:=/usr/src/packages}
 
 IMAGE_DIR=$TOPDIR/KIWI
+EXT=".tar.xz"
+PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*-docker.${ARCH}-"
+SUFFIX="-Build*${EXT}"
+KIWI8=0
 
 # new path for python based kiwi
 if [ -d $TOPDIR/KIWI-docker ];then
   IMAGE_DIR=$TOPDIR/KIWI-docker
+  EXT=".docker.tar.xz"
+  PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*.${ARCH}-"
+  SUFFIX="-Build*${EXT}"
+  KIWI8=1
 fi
 
 BUILD_DIR=/usr/lib/build
@@ -34,10 +42,7 @@ echo "Using $SPEC_IN as spec file template"
 # sles12-docker.x86_64-1.0.0-Build5.2.tar.xz
 
 
-EXT=".tar.xz"
 ARCH=$( rpm --eval '%{_arch}')
-PREFIX="@(sles|opensuse|OBS)*-docker.${ARCH}-"
-SUFFIX="-Build*${EXT}"
 
 shopt -s nullglob
 shopt -s extglob
@@ -57,11 +62,17 @@ declare -A SUSE_PRODUCT_MAP
 
 SUSE_PRODUCT_MAP[sles]="SUSE Linux Enterprise Server"
 SUSE_PRODUCT_MAP[opensuse]="openSUSE"
-SUSE_PRODUCT_MAP[OBS]="Open Build Service"
+SUSE_PRODUCT_MAP[OBS-Appliance]="Open Build Service"
+SUSE_PRODUCT_MAP[OBS-source-service]="Open Build Service - Source Service"
 
-SUSE_VERSION="${IMAGE#@(sles|opensuse|OBS)}"
-SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
-SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse|OBS).*/$1/')
+if [ $KIWI8 -eq 1 ];then
+  # No clear scheme ATM
+  SUSE_VERSION=""
+else
+  SUSE_VERSION="${IMAGE#@(sles|opensuse|OBS-Appliance|OBS-source-service)}"
+  SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
+fi
+SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse|OBS-Appliance|OBS-source-service).*/$1/')
 SUSE_PRODUCT_NAME=${SUSE_PRODUCT_MAP[$SUSE_PRODUCT]}
 
 NAME="${SUSE_PRODUCT}${SUSE_VERSION}-docker-image"
