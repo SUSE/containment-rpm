@@ -6,6 +6,7 @@ set -u
 : ${TOPDIR:=/usr/src/packages}
 
 IMAGE_DIR=$TOPDIR/KIWI
+ARCH=$( rpm --eval '%{_arch}')
 EXT=".tar.xz"
 PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*-docker.${ARCH}-"
 SUFFIX="-Build*${EXT}"
@@ -42,7 +43,6 @@ echo "Using $SPEC_IN as spec file template"
 # sles12-docker.x86_64-1.0.0-Build5.2.tar.xz
 
 
-ARCH=$( rpm --eval '%{_arch}')
 
 shopt -s nullglob
 shopt -s extglob
