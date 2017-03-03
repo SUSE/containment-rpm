@@ -1,24 +1,25 @@
 #!/bin/bash
 
-set -e
-set -u
-
 : ${TOPDIR:=/usr/src/packages}
 
-IMAGE_DIR=$TOPDIR/KIWI-docker
 ARCH=$( rpm --eval '%{_arch}')
 
 KIWI_NG=`kiwi --version|grep "next generation"`
+
+set -e
+set -u
 
 # new path for python based kiwi
 if [ -n "$KIWI_NG" ];then
   EXT=".docker.tar.xz"
   PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*.${ARCH}-"
   SUFFIX="-Build*${EXT}"
+  IMAGE_DIR=$TOPDIR/KIWI-docker
 else
   EXT=".tar.xz"
   PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*-docker.${ARCH}-"
   SUFFIX="-Build*${EXT}"
+  IMAGE_DIR=$TOPDIR/KIWI
 fi
 
 BUILD_DIR=/usr/lib/build
