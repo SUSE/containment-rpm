@@ -6,22 +6,23 @@ ARCH=$( rpm --eval '%{_arch}')
 
 KIWI_NG=`kiwi --version|grep "next generation"`
 
+echo "containment-rpm-docker: KIWI VERSION: $KIWI_NG"
+
 set -e
 set -u
 
 # new path for python based kiwi
 if [ -n "$KIWI_NG" ];then
   EXT=".docker.tar.xz"
-  PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*.${ARCH}-"
+  PREFIX="@(sles|opensuse|obs-appliance|obs-source-service)*.${ARCH}-"
   SUFFIX="-Build*${EXT}"
-  IMAGE_DIR=$TOPDIR/KIWI-docker
 else
   EXT=".tar.xz"
-  PREFIX="@(sles|opensuse|OBS-Appliance|OBS-source-service)*-docker.${ARCH}-"
+  PREFIX="@(sles|opensuse|obs-appliance|obs-source-service)*-docker.${ARCH}-"
   SUFFIX="-Build*${EXT}"
-  IMAGE_DIR=$TOPDIR/KIWI
 fi
 
+IMAGE_DIR=$TOPDIR/KIWI
 BUILD_DIR=/usr/lib/build
 
 cd $IMAGE_DIR
@@ -62,17 +63,24 @@ declare -A SUSE_PRODUCT_MAP
 
 SUSE_PRODUCT_MAP[sles]="SUSE Linux Enterprise Server"
 SUSE_PRODUCT_MAP[opensuse]="openSUSE"
-SUSE_PRODUCT_MAP[OBS-Appliance]="Open Build Service"
-SUSE_PRODUCT_MAP[OBS-source-service]="Open Build Service - Source Service"
+SUSE_PRODUCT_MAP[obs-appliance]="Open Build Service"
+
+SUSE_PRODUCT_MAP[obs-source-service]="Open Build Service - Source Service"
 
 if [ -n "$KIWI_NG" ];then
   # No clear scheme ATM
   SUSE_VERSION=""
 else
-  SUSE_VERSION="${IMAGE#@(sles|opensuse|OBS-Appliance|OBS-source-service)}"
-  SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
+  SUSE_VERSION="${IMAGE#@(sles|opensuse|obs-appliance|obs-source-service)}"
+  if [ -n "" ];then
+    # e.g. obs-source-service.x86_64-1.0.0-Build3.1.docker.tar.xz
+    SUSE_VERSION="${SUSE_VERSION%%.$ARCH*$EXT}"
+  else
+    SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
+  fi
 fi
-SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse|OBS-Appliance|OBS-source-service).*/$1/')
+SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse|obs-appliance|obs-source-service).*/$1/')
+echo "Using SUSE_PRODUCT='$SUSE_PRODUCT'"
 SUSE_PRODUCT_NAME=${SUSE_PRODUCT_MAP[$SUSE_PRODUCT]}
 
 NAME="${SUSE_PRODUCT}${SUSE_VERSION}-docker-image"
