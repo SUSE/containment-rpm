@@ -1,15 +1,31 @@
 #!/bin/bash
 
+: ${TOPDIR:=/usr/src/packages}
+
+ARCH=$( rpm --eval '%{_arch}')
+
+KIWI_NG=`kiwi --version|grep "next generation"`
+
+echo "containment-rpm-docker: KIWI VERSION: $KIWI_NG"
+
 set -e
 set -u
 
-: ${TOPDIR:=/usr/src/packages}
+# new path for python based kiwi
+if [ -n "$KIWI_NG" ];then
+  EXT=".docker.tar.xz"
+  PREFIX="@(sles|opensuse|obs-appliance|obs-source-service)*.${ARCH}-"
+  SUFFIX="-Build*${EXT}"
+else
+  EXT=".tar.xz"
+  PREFIX="@(sles|opensuse|obs-appliance|obs-source-service)*-docker.${ARCH}-"
+  SUFFIX="-Build*${EXT}"
+fi
 
 IMAGE_DIR=$TOPDIR/KIWI
 BUILD_DIR=/usr/lib/build
 
 cd $IMAGE_DIR
-
 
 # Setting default for SPEC_IN
 SPEC_IN=$BUILD_DIR/image.spec.in
@@ -27,28 +43,47 @@ echo "Using $SPEC_IN as spec file template"
 # OBS build:
 # sles12-docker.x86_64-1.0.0-Build5.2.tar.xz
 
-
-EXT=".tar.xz"
-ARCH=$( rpm --eval '%{_arch}')
-PREFIX="sles*-docker.${ARCH}-"
-SUFFIX="-Build*${EXT}"
-
 shopt -s nullglob
+shopt -s extglob
+
 IMAGE=$(echo ${PREFIX}*${SUFFIX})
 PACKAGES=$(echo ${PREFIX}*.packages)
 
 if [ -z "$IMAGE" ]; then
-    echo "Couldn't find anything in $IMAGE_DIR matching ${PREFIX}*${SUFFIX}."
+    echo "Couldn't find anything in "`pwd`" matching ${PREFIX}*${SUFFIX}."
+    echo "Content of directory:"
+    ls -1
     echo "Will skip containment rpm wrapping steps."
     exit 0
 fi
 
 echo "Attempting to wrap $IMAGE in a containment rpm ..."
 
-SLE_VERSION="${IMAGE#sles}"
-SLE_VERSION="${SLE_VERSION%%-docker.$ARCH*$EXT}"
+declare -A SUSE_PRODUCT_MAP
 
-NAME="sles${SLE_VERSION}-docker-image"
+SUSE_PRODUCT_MAP[sles]="SUSE Linux Enterprise Server"
+SUSE_PRODUCT_MAP[opensuse]="openSUSE"
+SUSE_PRODUCT_MAP[obs-appliance]="Open Build Service"
+
+SUSE_PRODUCT_MAP[obs-source-service]="Open Build Service - Source Service"
+
+if [ -n "$KIWI_NG" ];then
+  # No clear scheme ATM
+  SUSE_VERSION=""
+else
+  SUSE_VERSION="${IMAGE#@(sles|opensuse|obs-appliance|obs-source-service)}"
+  if [ -n "" ];then
+    # e.g. obs-source-service.x86_64-1.0.0-Build3.1.docker.tar.xz
+    SUSE_VERSION="${SUSE_VERSION%%.$ARCH*$EXT}"
+  else
+    SUSE_VERSION="${SUSE_VERSION%%-docker.$ARCH*$EXT}"
+  fi
+fi
+SUSE_PRODUCT=$(echo ${IMAGE} | perl -p -e 's/^(sles|opensuse|obs-appliance|obs-source-service).*/$1/')
+echo "Using SUSE_PRODUCT='$SUSE_PRODUCT'"
+SUSE_PRODUCT_NAME=${SUSE_PRODUCT_MAP[$SUSE_PRODUCT]}
+
+NAME="${SUSE_PRODUCT}${SUSE_VERSION}-docker-image"
 RELEASE=$(date +%Y%m%d)
 
 VERSION="${IMAGE#$PREFIX}"
@@ -66,11 +101,16 @@ echo "version $VERSION"
 echo "release $RELEASE"
 echo "image_name $IMAGE_NAME"
 
+
+# keep __SLE_VERSION__ in there for backwards compatiblity
+# with older spec file templates
 sed -e "s/__NAME__/$NAME/g" \
     -e "s/__VERSION__/$VERSION/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
     -e "s/__SOURCE__/$IMAGE/g" \
-    -e "s/__SLE_VERSION__/$SLE_VERSION/g" \
+    -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
+    -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
+    -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
     -e "s/__IMAGE_NAME__/$IMAGE_NAME/g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
