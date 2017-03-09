@@ -34,6 +34,7 @@ Requires:       rubygem(changelog_generator)
 Requires:       rubygem-changelog_generator
 %endif
 Requires:       changelog-generator-data
+Requires:       libxml2-tools
 
 %description
 OBS kiwi_post_run hook to wrap a kiwi-produced image in an rpm package.
