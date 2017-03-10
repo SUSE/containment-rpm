@@ -41,12 +41,19 @@ CONTAINER_TAG=$( xmllint --xpath "string(//image/preferences/type/containerconfi
                     $TOPDIR/KIWIROOT-docker/image/config.xml )
 
 # Get path for python based kiwi
-PREFIX="${PKG_NAME}.${ARCH}-"
-EXT=".tar.xz"
+PREFIX="${PKG_NAME}.${ARCH}-${PKG_VERSION}"
+SUFFIX=".tar.xz"
 if [ -n "$KIWI_NG" ]; then
-  EXT=".docker${EXT}"
+    SUFFIX=".docker${SUFFIX}"
 fi
-SUFFIX="-Build*${EXT}"
+
+# Rename all KIWI files and remove -Build* pattern
+# For example base-salt-master.x86_64-1.0.0-Build1.7.docker.tar.xz
+# will be renamed to base-salt-master.x86_64-1.0.0.docker.tar.xz
+for EXT in "${SUFFIX}" "${SUFFIX}.sha256" ".packages" ".verified"; do
+    FNAME=$(echo ${PREFIX}*${EXT} )
+    mv ${FNAME} ${PREFIX}${EXT}
+done
 
 shopt -s nullglob
 shopt -s extglob
