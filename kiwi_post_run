@@ -35,10 +35,11 @@ PKG_NAME=$( xmllint --xpath "string(//image/@name)" \
                     $TOPDIR/KIWIROOT-docker/image/config.xml )
 PKG_VERSION=$( xmllint --xpath "string(//image/preferences/version)" \
                     $TOPDIR/KIWIROOT-docker/image/config.xml )
-CONTAINER_NAME=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@name)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml | sed 's/\//-/' )
+CONTAINER_RAW=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@name)" \
+                    $TOPDIR/KIWIROOT-docker/image/config.xml )
 CONTAINER_TAG=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@tag)" \
                     $TOPDIR/KIWIROOT-docker/image/config.xml )
+CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's/\//-/' )
 
 # Get path for python based kiwi
 PREFIX="${PKG_NAME}.${ARCH}-${PKG_VERSION}"
@@ -59,6 +60,7 @@ shopt -s nullglob
 shopt -s extglob
 
 IMAGE=$(echo ${PREFIX}*${SUFFIX})
+METADATA=$(echo ${PREFIX}.metadata)
 PACKAGES=$(echo ${PREFIX}*.packages)
 
 if [ -z "$IMAGE" ]; then
@@ -91,13 +93,26 @@ echo "name $NAME"
 echo "version $VERSION"
 echo "release $RELEASE"
 echo "source $IMAGE"
+echo "metadata $METADATA"
+
+# Generate metada JSON file for container-feeder
+cat << EOF > $METADATA
+{
+  "image": {
+    "name": "$CONTAINER_RAW",
+    "tags": [ "$CONTAINER_TAG", "latest" ],
+    "file": "$IMAGE"
+  }
+}
+EOF
 
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
 sed -e "s/__NAME__/$NAME/g" \
     -e "s/__VERSION__/$VERSION/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
-    -e "s/__SOURCE__/$IMAGE/g" \
+    -e "s/__SOURCE0__/$IMAGE/g" \
+    -e "s/__SOURCE1__/$METADATA/g" \
     -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
@@ -110,6 +125,11 @@ changelog-generator --new-packages $PACKAGES \
 
 cat $BUILD_DIR/image.changes >> $BUILD_DIR/image.spec
 mv $BUILD_DIR/image.changes $IMAGE_DIR
+
+# Copy metadata file to source directory
+if [ ! -f $TOPDIR/SOURCES/$METADATA ]; then
+  cp $METADATA $TOPDIR/SOURCES
+fi
 
 # Local builds have the file already in place, that's not true on IBS
 if [ ! -f $TOPDIR/SOURCES/$IMAGE ]; then

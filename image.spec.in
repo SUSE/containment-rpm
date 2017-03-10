@@ -7,7 +7,8 @@ Version:        __VERSION__
 Release:        __RELEASE__
 Group:          System/Management
 License:        SUSE-EULA
-Source0:        __SOURCE__
+Source0:        __SOURCE0__
+Source1:        __SOURCE1__
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Recommends:     sle2docker
 
@@ -21,7 +22,8 @@ image for Docker.
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/suse-docker-images
-cp %{SOURCE0} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/
+install -p -D -m 644 %{SOURCE0} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/
+install -p -D -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
