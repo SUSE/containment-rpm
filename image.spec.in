@@ -21,15 +21,15 @@ image for Docker.
 %build
 
 %install
-install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/suse-docker-images
-install -p -D -m 644 %{SOURCE0} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/
-install -p -D -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/
+install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native
+install -p -D -m 644 %{SOURCE0} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native/
+install -p -D -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-, root, root)
-%{_datadir}/suse-docker-images
+%{_datadir}/suse-docker-images/native
 
 %changelog
