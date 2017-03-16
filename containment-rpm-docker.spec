@@ -18,7 +18,7 @@
 # norootforbuild
 
 Name:           containment-rpm-docker
-Version:        1.3.3
+Version:        1.3.4
 Release:        0
 License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
