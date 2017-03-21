@@ -24,7 +24,7 @@ License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
 Url:            https://github.com/SUSE/containment-rpm-docker
 Group:          System/Management
-Source:         %{name}-%{version}.tar.bz2
+Source:         %{name}-%{version}.tar.gz
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
