@@ -47,7 +47,7 @@ image.spec.in), and place the rpm in the correct location that it
 becomes an additional build artefact.
 
 %prep
-%setup -q
+%setup -q -n %{name}-master
 
 %build
 
