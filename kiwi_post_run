@@ -116,6 +116,8 @@ sed -e "s/__NAME__/$NAME/g" \
     -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
+    -e "s/__PKG_NAME__/$PKG_NAME/g" \
+    -e "s/__PKG_VERSION__/$PKG_VERSION/g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
 
