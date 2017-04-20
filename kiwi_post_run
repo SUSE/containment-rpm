@@ -30,20 +30,47 @@ echo "Generate metadata for spec file template"
 
 ARCH=$( rpm --eval '%{_arch}')
 
+for IMAGE_TYPE in "docker" "tbz"; do
+    KIWI_CONFIG=$TOPDIR/KIWIROOT-$IMAGE_TYPE/image/config.xml
+    if [ -r $KIWI_CONFIG ]; then
+        break
+    fi
+done
+
+echo "Detected image type: $IMAGE_TYPE, using config $KIWI_CONFIG"
+
 # Parse KIWI config.xml to get docker images details
 PKG_NAME=$( xmllint --xpath "string(//image/@name)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
+                    $KIWI_CONFIG )
 PKG_VERSION=$( xmllint --xpath "string(//image/preferences/version)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
-CONTAINER_RAW=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@name)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
-CONTAINER_TAG=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@tag)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
-CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's/\//-/' )
+                    $KIWI_CONFIG )
+if [ "$IMAGE_TYPE" == "docker" ]; then
+    CONTAINER_RAW=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@name)" \
+                        $TOPDIR/KIWIROOT-docker/image/config.xml )
+    CONTAINER_TAG=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@tag)" \
+                        $TOPDIR/KIWIROOT-docker/image/config.xml )
+    CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's/\//-/' )
+fi
 
 # Get path for python based kiwi
 PREFIX="${PKG_NAME}.${ARCH}-${PKG_VERSION}"
-SUFFIX=".tar.xz"
+case "$IMAGE_TYPE" in
+    docker)
+        SUFFIX=".tar.xz"
+        NAME="${CONTAINER_NAME}-${CONTAINER_TAG}-docker-image"
+        SUSE_VERSION="${CONTAINER_TAG}"
+        SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
+        OUT_DIR=suse-docker-images/native
+        break;;
+    tbz)
+        SUFFIX="tbz"
+        NAME="${PKG_NAME}-syscontainer-image"
+        SUSE_VERSION="$(echo PKG_NAME | sed -e 's/sp/ sp/' | cut -d ' ' -f 2)"
+        SUSE_PRODUCT_NAME="$(echo PKG_NAME | sed -e 's/sp/ sp/' | cut -d ' ' -f 1)"
+        OUT_DIR=suse-syscontainer-images
+        break;;
+esac
+
 if [ -n "$KIWI_NG" ]; then
     SUFFIX=".docker${SUFFIX}"
 fi
@@ -73,10 +100,6 @@ fi
 
 echo "Attempting to wrap $IMAGE in a containment rpm ..."
 
-SUSE_VERSION="${CONTAINER_TAG}"
-SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
-
-NAME="${CONTAINER_NAME}-${CONTAINER_TAG}-docker-image"
 VERSION="${PKG_VERSION}"
 RELEASE=$(date +%Y%m%d)
 
@@ -93,10 +116,12 @@ echo "name $NAME"
 echo "version $VERSION"
 echo "release $RELEASE"
 echo "source $IMAGE"
-echo "metadata $METADATA"
 
-# Generate metada JSON file for container-feeder
-cat << EOF > $METADATA
+if [ "$IMAGE_TYPE" == "docker" ]; then
+    echo "metadata $METADATA"
+
+    # Generate metada JSON file for container-feeder
+    cat << EOF > $METADATA
 {
   "image": {
     "name": "$CONTAINER_RAW",
@@ -105,6 +130,15 @@ cat << EOF > $METADATA
   }
 }
 EOF
+fi
+
+if [ "$IMAGE_TYPE" == "tbz" ]; then
+    SPEC_TBZ_IN=$BUILD_DIR/image-tbz.spec.in
+    sed -e "/SOURCE1/d" \
+        < $SPEC_IN \
+        > $SPEC_TBZ_IN
+    SPEC_IN=$SPEC_TBZ_IN
+fi
 
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
@@ -116,6 +150,7 @@ sed -e "s/__NAME__/$NAME/g" \
     -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
+    -e "s/__OUT_DIR__/$OUT_DIR/g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
 
@@ -126,9 +161,11 @@ changelog-generator --new-packages $PACKAGES \
 cat $BUILD_DIR/image.changes >> $BUILD_DIR/image.spec
 mv $BUILD_DIR/image.changes $IMAGE_DIR
 
-# Copy metadata file to source directory
-if [ ! -f $TOPDIR/SOURCES/$METADATA ]; then
-  cp $METADATA $TOPDIR/SOURCES
+if [ "$IMAGE_TYPE" == "docker" ]; then
+    # Copy metadata file to source directory
+    if [ ! -f $TOPDIR/SOURCES/$METADATA ]; then
+      cp $METADATA $TOPDIR/SOURCES
+    fi
 fi
 
 # Local builds have the file already in place, that's not true on IBS
