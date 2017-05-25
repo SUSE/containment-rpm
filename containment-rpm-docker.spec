@@ -18,7 +18,7 @@
 # norootforbuild
 
 Name:           containment-rpm-docker
-Version:        1.3.4
+Version:        1.3.5
 Release:        0
 License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
@@ -47,7 +47,7 @@ image.spec.in), and place the rpm in the correct location that it
 becomes an additional build artefact.
 
 %prep
-%setup -q -n %{name}-master
+%setup -q -n %{name}-%{version}
 
 %build
 
