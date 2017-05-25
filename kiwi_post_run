@@ -119,9 +119,15 @@ sed -e "s/__NAME__/$NAME/g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
 
-changelog-generator --new-packages $PACKAGES \
-  --old-packages /usr/share/changelog-generator-data/$PKG_NAME.old.packages.$ARCH \
-  --changelog /usr/share/changelog-generator-data/$PKG_NAME.old.changes.$ARCH > $BUILD_DIR/image.changes
+touch $BUILD_DIR/images.changes
+
+if [ -e $PKG_NAME.old.packages.$ARCH ];then
+    if [ -e $PKG_NAME.old.changes.$ARCH ];then
+        changelog-generator --new-packages $PACKAGES \
+          --old-packages /usr/share/changelog-generator-data/$PKG_NAME.old.packages.$ARCH \
+          --changelog /usr/share/changelog-generator-data/$PKG_NAME.old.changes.$ARCH > $BUILD_DIR/image.changes
+    fi
+fi
 
 cat $BUILD_DIR/image.changes >> $BUILD_DIR/image.spec
 mv $BUILD_DIR/image.changes $IMAGE_DIR
