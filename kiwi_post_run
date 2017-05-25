@@ -119,7 +119,7 @@ sed -e "s/__NAME__/$NAME/g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
 
-touch $BUILD_DIR/images.changes
+touch $BUILD_DIR/image.changes
 
 if [ -e $PKG_NAME.old.packages.$ARCH ];then
     if [ -e $PKG_NAME.old.changes.$ARCH ];then
