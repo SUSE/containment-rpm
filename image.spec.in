@@ -10,7 +10,6 @@ License:        SUSE-EULA
 Source0:        __SOURCE0__
 Source1:        __SOURCE1__
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Recommends:     sle2docker
 
 %description
 This package contains the official __SUSE_PRODUCT_NAME__ __SUSE_VERSION__
