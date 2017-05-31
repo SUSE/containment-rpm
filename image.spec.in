@@ -23,6 +23,7 @@ image for Docker.
 install -d -m 755 $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native
 install -p -D -m 644 %{SOURCE0} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native/
 install -p -D -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native/
+ln -s ./$(basename %{SOURCE0}) $RPM_BUILD_ROOT%{_datadir}/suse-docker-images/native/__PKG_NAME__
 
 %clean
 rm -rf $RPM_BUILD_ROOT

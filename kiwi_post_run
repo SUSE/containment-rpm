@@ -109,6 +109,7 @@ EOF
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
 sed -e "s/__NAME__/$NAME/g" \
+    -e "s/__PKG_NAME__/$PKG_NAME/g" \
     -e "s/__VERSION__/$VERSION/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
     -e "s/__SOURCE0__/$IMAGE/g" \
