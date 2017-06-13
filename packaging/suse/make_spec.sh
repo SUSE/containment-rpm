@@ -1,7 +1,29 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+  cat <<EOF
+usage:
+  ./make_spec.sh PACKAGE
+EOF
+  exit 1
+fi
+
+cd $(dirname $0)
+
+YEAR=$(date +%Y)
+VERSION=$(git describe --abbrev=0 --tags)
+# remove "v"
+VERSION=$(echo $VERSION | sed -e "s/v//g")
+REVISION=$(git rev-list HEAD | wc -l)
+COMMIT=$(git rev-parse --short HEAD)
+VERSION="${VERSION%+*}+git_r${REVISION}_${COMMIT}"
+NAME=$1
+
+cat <<EOF > ${NAME}.spec
 #
 # spec file for package containment-rpm-docker
 #
-# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) $YEAR SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,14 +39,14 @@
 
 # norootforbuild
 
-Name:           containment-rpm-docker
-Version:        1.3.4
+Name:           $NAME
+Version:        $VERSION
 Release:        0
 License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
 Url:            https://github.com/SUSE/containment-rpm-docker
 Group:          System/Management
-Source:         %{name}-%{version}.tar.gz
+Source:         master.tar.gz
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
@@ -62,3 +84,4 @@ install -m 755 kiwi_post_run %{buildroot}/usr/lib/build/
 /usr/lib/build/image.spec.in
 
 %changelog
+EOF
