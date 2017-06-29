@@ -76,7 +76,7 @@ echo "Attempting to wrap $IMAGE in a containment rpm ..."
 SUSE_VERSION="${CONTAINER_TAG}"
 SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
 
-NAME="${CONTAINER_NAME}-${CONTAINER_TAG}-docker-image"
+NAME="${CONTAINER_NAME}-docker-image"
 VERSION="${PKG_VERSION}"
 RELEASE=$(date +%Y%m%d)
 
