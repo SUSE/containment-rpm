@@ -3,7 +3,7 @@
 if [ -z "$1" ]; then
   cat <<EOF
 usage:
-  ./make_spec.sh PACKAGE
+  ./make_spec.sh PACKAGE [BRANCH]
 EOF
   exit 1
 fi
@@ -18,6 +18,7 @@ REVISION=$(git rev-list HEAD | wc -l)
 COMMIT=$(git rev-parse --short HEAD)
 VERSION="${VERSION%+*}+git_r${REVISION}_${COMMIT}"
 NAME=$1
+BRANCH=${2:-master}
 
 cat <<EOF > ${NAME}.spec
 #
@@ -46,7 +47,7 @@ License:        MIT
 Summary:        Wraps OBS/kiwi-built images in rpms
 Url:            https://github.com/SUSE/containment-rpm-docker
 Group:          System/Management
-Source:         master.tar.gz
+Source:         ${BRANCH}.tar.gz
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
@@ -69,7 +70,7 @@ image.spec.in), and place the rpm in the correct location that it
 becomes an additional build artefact.
 
 %prep
-%setup -q -n %{name}-master
+%setup -q -n %{name}-${BRANCH}
 
 %build
 
