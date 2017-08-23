@@ -52,14 +52,6 @@ if [ -n "$KIWI_NG" ]; then
     SUFFIX=".docker${SUFFIX}"
 fi
 
-# Rename all KIWI files and remove -Build* pattern
-# For example base-salt-master.x86_64-1.0.0-Build1.7.docker.tar.xz
-# will be renamed to base-salt-master.x86_64-1.0.0.docker.tar.xz
-for EXT in "${SUFFIX}" "${SUFFIX}.sha256" ".packages" ".verified"; do
-    FNAME=$(echo ${PREFIX}*${EXT} )
-    mv ${FNAME} ${PREFIX}${EXT}
-done
-
 shopt -s nullglob
 shopt -s extglob
 
@@ -83,7 +75,7 @@ SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
 
 NAME="${CONTAINER_NAME}-docker-image"
 VERSION="${PKG_VERSION}"
-RELEASE=$(date +%Y%m%d)
+RELEASE=$(expr match "$PACKAGES" '.*-Build\(.*\).packages')
 
 # Check if VERSION was defined properly and validate it
 # VERSION for RPM package has to be decimal number separete with dots
@@ -106,7 +98,7 @@ cat << EOF > $METADATA
 {
   "image": {
     "name": "$CONTAINER_RAW",
-    "tags": [ "$CONTAINER_TAG", "latest" ],
+    "tags": [ "${VERSION}-${RELEASE}", "${CONTAINER_TAG}-${RELEASE}", "$CONTAINER_TAG", "latest" ],
     "file": "$IMAGE"
   }
 }
@@ -114,7 +106,7 @@ EOF
 
 # Generate tagfile for automation to determine the latest, most specific, tag for
 # the currently installed RPM
-echo -n "${SUSE_VERSION}" > $TAGFILE
+echo -n "${VERSION}-${RELEASE}" > $TAGFILE
 
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
