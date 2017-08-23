@@ -65,6 +65,7 @@ shopt -s extglob
 
 IMAGE=$(echo ${PREFIX}*${SUFFIX})
 METADATA=$(echo ${PREFIX}.metadata)
+TAGFILE=$(echo ${PREFIX}.tag)
 PACKAGES=$(echo ${PREFIX}*.packages)
 
 if [ -z "$IMAGE" ]; then
@@ -98,6 +99,7 @@ echo "version $VERSION"
 echo "release $RELEASE"
 echo "source $IMAGE"
 echo "metadata $METADATA"
+echo "tagfile $TAGFILE"
 
 # Generate metada JSON file for container-feeder
 cat << EOF > $METADATA
@@ -110,6 +112,10 @@ cat << EOF > $METADATA
 }
 EOF
 
+# Generate tagfile for automation to determine the latest, most specific, tag for
+# the currently installed RPM
+echo -n "${SUSE_VERSION}" > $TAGFILE
+
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
 sed -e "s/__NAME__/$NAME/g" \
@@ -118,6 +124,7 @@ sed -e "s/__NAME__/$NAME/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
     -e "s/__SOURCE0__/$IMAGE/g" \
     -e "s/__SOURCE1__/$METADATA/g" \
+    -e "s/__SOURCE2__/$TAGFILE/g" \
     -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
     -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
@@ -149,6 +156,11 @@ mv $BUILD_DIR/image.changes $IMAGE_DIR
 # Copy metadata file to source directory
 if [ ! -f $TOPDIR/SOURCES/$METADATA ]; then
   cp $METADATA $TOPDIR/SOURCES
+fi
+
+# Copy tagfile to source directory
+if [ ! -f $TOPDIR/SOURCES/$TAGFILE ]; then
+  cp $TAGFILE $TOPDIR/SOURCES
 fi
 
 # Local builds have the file already in place, that's not true on IBS
