@@ -73,7 +73,7 @@ echo "Attempting to wrap $IMAGE in a containment rpm ..."
 SUSE_VERSION="${CONTAINER_TAG}"
 SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
 
-NAME="${CONTAINER_NAME}-docker-image"
+NAME="${CONTAINER_NAME}-image"
 VERSION="${PKG_VERSION}"
 RELEASE=$(expr match "$PACKAGES" '.*-Build\(.*\).packages')
 
