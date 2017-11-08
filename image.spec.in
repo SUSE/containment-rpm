@@ -11,6 +11,7 @@ Source0:        __SOURCE0__
 Source1:        __SOURCE1__
 Source2:        __SOURCE2__
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Obsoletes:      __OLD_NAME__
 
 %description
 This package contains the official __SUSE_PRODUCT_NAME__ __SUSE_VERSION__

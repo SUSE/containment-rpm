@@ -77,6 +77,12 @@ NAME="${CONTAINER_NAME}-image"
 VERSION="${PKG_VERSION}"
 RELEASE=$(expr match "$PACKAGES" '.*-Build\(.*\).packages')
 
+# For some time our images where named <name>-docker-image,
+# now they have been renamed to <name>-image.
+# We have to obsolete the old names otherwise both RPMs will live
+# on the same system. That can lead to issues with CaaSP, see bsc#1066653
+OLD_NAME="${CONTAINER_NAME}-docker-image"
+
 # Check if VERSION was defined properly and validate it
 # VERSION for RPM package has to be decimal number separete with dots
 if ! [[ $VERSION =~ ^([0-9]+\.){0,2}(\*|[0-9]+)$ ]]; then
@@ -87,6 +93,7 @@ if ! [[ $VERSION =~ ^([0-9]+\.){0,2}(\*|[0-9]+)$ ]]; then
 fi
 
 echo "name $NAME"
+echo "old name $OLD_NAME"
 echo "version $VERSION"
 echo "release $RELEASE"
 echo "source $IMAGE"
@@ -111,6 +118,7 @@ echo -n "${CONTAINER_TAG}-${RELEASE}" > $TAGFILE
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
 sed -e "s/__NAME__/$NAME/g" \
+    -e "s/__OLD_NAME__/$OLD_NAME/g" \
     -e "s/__PKG_NAME__/$PKG_NAME/g" \
     -e "s/__VERSION__/$VERSION/g" \
     -e "s/__RELEASE__/$RELEASE/g" \
