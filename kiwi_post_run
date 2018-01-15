@@ -68,6 +68,13 @@ if [ -z "$IMAGE" ]; then
     exit 0
 fi
 
+if [ -z "$CONTAINER_TAG" ]; then
+    echo "Couldn't parse the container tag in config.xml"
+    echo "Wrapping the image in a containment rpm requires a tag."
+    echo "Will skip containment rpm wrapping steps."
+    exit 0
+fi
+
 echo "Attempting to wrap $IMAGE in a containment rpm ..."
 
 SUSE_VERSION="${CONTAINER_TAG}"
