@@ -147,6 +147,11 @@ PACKAGES_FILENAME=/usr/share/changelog-generator-data/old.packages.$PKG_NAME.$AR
 
 if [ -e $PACKAGES_FILENAME ];then
     if [ -e $CHANGELOG_FILENAME ];then
+        if ! type changelog-generator &>/dev/null;then
+            echo "Fatal: changelog found but 'changelog-generator' not installed!"
+            exit 1
+        fi
+
         changelog-generator --new-packages $PACKAGES \
           --old-packages $PACKAGES_FILENAME \
           --changelog $CHANGELOG_FILENAME > $BUILD_DIR/image.changes

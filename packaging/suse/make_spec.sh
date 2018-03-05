@@ -52,12 +52,14 @@ Source:         ${SAFE_BRANCH}.tar.gz
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
+%if !0%{?is_opensuse}
 %if 0%{?suse_version} >= 1230
 Requires:       rubygem(changelog_generator)
 %else
 Requires:       rubygem-changelog_generator
 %endif
 Requires:       changelog-generator-data
+%endif
 Requires:       libxml2-tools
 # Conflicts with other packages that provide /usr/lib/build/kiwi_post_run
 Conflicts:      infos-creator-rpm
