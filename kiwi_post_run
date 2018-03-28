@@ -15,7 +15,7 @@ BUILD_DIR=/usr/lib/build
 BUILD_DISTURL=
 
 # To get BUILD_DISTURL
-. /.buildenv
+test -f /.buildenv && . /.buildenv
 
 cd $IMAGE_DIR
 
@@ -82,7 +82,12 @@ SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
 
 NAME="${CONTAINER_NAME}-image"
 VERSION="${PKG_VERSION}"
-RELEASE=$(expr match "$PACKAGES" '.*-Build\(.*\).packages')
+RELEASE=$(echo "$PACKAGES" | sed 's/.*-Build\(.*\).packages/\1/')
+
+if [ -z "$RELEASE" ]; then
+    echo "Could not parse release number, setting it to zero"
+    RELEASE=0
+fi
 
 # For some time our images where named <name>-docker-image,
 # now they have been renamed to <name>-image.
