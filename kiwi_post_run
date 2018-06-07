@@ -32,7 +32,7 @@ echo "Using $SPEC_IN as spec file template"
 
 echo "Generate metadata for spec file template"
 
-ARCH=$( rpm --eval '%{_arch}')
+ARCH="$(uname -m)"
 
 # Parse KIWI config.xml to get docker images details
 PKG_NAME=$( xmllint --xpath "string(//image/@name)" \
@@ -202,9 +202,9 @@ if [ ! -f $TOPDIR/RPMS/$ARCH ]; then
 fi
 
 if [ -z "$BUILD_DISTURL" ]; then
-  rpmbuild -ba $BUILD_DIR/image.spec
+  rpmbuild --target $ARCH -ba $BUILD_DIR/image.spec
 else
-  rpmbuild -ba --define "disturl $BUILD_DISTURL" $BUILD_DIR/image.spec
+  rpmbuild --target $ARCH -ba --define "disturl $BUILD_DISTURL" $BUILD_DIR/image.spec
 fi
 
 # required for the BS to find the rpm, because it is
