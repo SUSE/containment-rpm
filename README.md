@@ -56,7 +56,7 @@ The project must have at least two repositories:
   * A KIWI repository, this is called 'images' by default by the build service.
   * A repository to build the containment-rpm-docker binary.
 
-If you plan to build a docker images for different version of SLE then you have
+If you plan to build docker images for different versions of SLE then you have
 to make sure you build the containment rpm also for these targets. You have to
 do that because the build host will have the same OS of the target (see previous
 section).
