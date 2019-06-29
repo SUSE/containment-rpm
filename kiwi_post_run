@@ -7,9 +7,6 @@ KIWI_VER=$( kiwi --version | grep vnr | sed 's/.*vnr: //' )
 
 echo "Running containment-rpm-docker: KIWI VERSION: $KIWI_VER"
 
-set -e
-set -u
-
 IMAGE_DIR=$TOPDIR/KIWI
 BUILD_DIR=/usr/lib/build
 BUILD_DISTURL=
@@ -44,6 +41,9 @@ CONTAINER_RAW=$( xmllint --xpath "string(//image/preferences/type/containerconfi
 CONTAINER_TAG=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@tag)" \
                     $TOPDIR/KIWIROOT-docker/image/config.xml )
 CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's/\//-/' )
+
+set -e
+set -u
 
 # Get path for python based kiwi
 PREFIX="${PKG_NAME}.${ARCH}-${PKG_VERSION}"
