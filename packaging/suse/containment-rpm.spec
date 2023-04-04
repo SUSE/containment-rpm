@@ -1,7 +1,7 @@
 #
 # spec file for package containment-rpm
 #
-# Copyright (c) 2023 SUSE LINUX Products GmbH, Nuernberg, Germany.
+# Copyright (c) 2023 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -12,36 +12,32 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
-# norootforbuild
 
 Name:           containment-rpm
 Version:        2.0.0
 Release:        0
-License:        MIT
 Summary:        Wraps OBS docker/kiwi-built images in rpms
-Url:            https://github.com/SUSE/containment-rpm-docker
+License:        MIT
 Group:          System/Management
-Source:         %{name}-%{version}.tar.bz2
-Source1:	image.spec.in
-Source2:	container_post_run
+URL:            https://github.com/SUSE/containment-rpm-docker
+Source:         https://github.com/SUSE/containment-rpm/archive/refs/tags/v%{version}.tar.gz
 BuildRequires:  filesystem
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Requires:       jq
+Requires:       libxml2-tools
 BuildArch:      noarch
 # disabled for now, not used for public cloud purpose
 %if 0
+Requires:       changelog-generator-data
+Requires:       libxml2-tools
 %if 0%{?suse_version} >= 1230
 Requires:       rubygem(changelog_generator)
 %else
 Requires:       rubygem-changelog_generator
 %endif
-Requires:       changelog-generator-data
-Requires:       libxml2-tools
 %endif
-Requires:	jq
-Requires:	libxml2-tools
 
 %description
 OBS container_post_run hook to wrap a kiwi or docker image in an rpm package.
@@ -59,14 +55,13 @@ becomes an additional build artefact.
 %build
 
 %install
-mkdir -p %{buildroot}/usr/lib/build/post_build.d
-install -m 644 %{SOURCE1} %{buildroot}/usr/lib/build/
-install -m 755 %{SOURCE2} %{buildroot}/usr/lib/build/post_build.d/
+mkdir -p %{buildroot}%{_prefix}/lib/build/post_build.d
+install -m 644 image.spec.in %{buildroot}%{_prefix}/lib/build/
+install -m 755 container_post_run %{buildroot}%{_prefix}/lib/build/post_build.d/
 
 %files
-%defattr(-,root,root)
-%dir /usr/lib/build/post_build.d
-/usr/lib/build/post_build.d/*_post_run
-/usr/lib/build/image.spec.in
+%dir %{_prefix}/lib/build/post_build.d
+%{_prefix}/lib/build/post_build.d/*_post_run
+%{_prefix}/lib/build/image.spec.in
 
 %changelog
