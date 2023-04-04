@@ -2,21 +2,30 @@
 
 : ${TOPDIR:=/usr/src/packages}
 
-KIWI_NG=$( kiwi --version|grep "next generation")
-KIWI_VER=$( kiwi --version | grep vnr | sed 's/.*vnr: //' )
+if [ -d $TOPDIR/KIWI ]; then
+  IMAGE_DIR=$TOPDIR/KIWI
+  KIWI_NG=$( kiwi --version|grep "next generation")
+  KIWI_VER=$( kiwi --version | grep vnr | sed 's/.*vnr: //' )
+elif [ -d $TOPDIR/DOCKER ]; then
+  IMAGE_DIR=$TOPDIR/DOCKER
+else
+ exit 0
+fi
 
-echo "Running containment-rpm-docker: KIWI VERSION: $KIWI_VER"
+
+
+echo "Running containment-rpm-docker: KIWI VERSION: $KIWI_NG $KIWI_VER"
 
 set -e
 set -u
 
-IMAGE_DIR=$TOPDIR/KIWI
 BUILD_DIR=/usr/lib/build
 BUILD_DISTURL=
 
 # To get BUILD_DISTURL
 test -f /.buildenv && . /.buildenv
 
+[ -d $IMAGE_DIR ] || exit 0
 cd $IMAGE_DIR
 
 # Setting default for SPEC_IN
@@ -34,28 +43,36 @@ echo "Generate metadata for spec file template"
 
 ARCH="$(uname -m)"
 
-# Parse KIWI config.xml to get docker images details
-PKG_NAME=$( xmllint --xpath "string(//image/@name)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
-PKG_VERSION=$( xmllint --xpath "string(//image/preferences/version)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
-CONTAINER_RAW=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@name)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
-CONTAINER_TAG=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@tag)" \
-                    $TOPDIR/KIWIROOT-docker/image/config.xml )
+IMAGE=$(cat $IMAGE_DIR/*.containerinfo | jq -r '.file')
+PKG_VERSION=$( cat $IMAGE_DIR/*.containerinfo | jq -r '.version')
+PKG_RELEASE=$( cat $IMAGE_DIR/*.containerinfo | jq -r '.release')
+SUFFIX=".tar"
+
+if [ -d $TOPDIR/KIWI ]; then
+  # Parse KIWI config.xml to get docker images details
+  CONTAINER_RAW=$( xmllint --xpath "string(//image/preferences/type/containerconfig/@name)" \
+                      $TOPDIR/KIWIROOT-docker/image/config.xml )
+  PKG_NAME=$( xmllint --xpath "string(//image/@name)" \
+                      $TOPDIR/KIWIROOT-docker/image/config.xml )
+
+  # Get path for python based kiwi
+  PREFIX="${PKG_NAME}.${ARCH}-${PKG_VERSION}"
+  if [ -n "$KIWI_NG" ]; then
+      SUFFIX=".docker${SUFFIX}"
+  fi
+else
+  PKG_NAME=$(echo $IMAGE | sed "s/-$PKG_VERSION.$ARCH-$PKG_RELEASE.*//g")
+  # only usable on kiwi build
+  CONTAINER_RAW="$PKG_NAME"
+  PREFIX="${PKG_NAME}-${PKG_VERSION}.${ARCH}-${PKG_RELEASE}"
+fi
+CONTAINER_TAG=$( cat $IMAGE_DIR/*.containerinfo | jq -r '.tags[0]' )
 CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's/\//-/' )
 
-# Get path for python based kiwi
-PREFIX="${PKG_NAME}.${ARCH}-${PKG_VERSION}"
-SUFFIX=".tar.xz"
-if [ -n "$KIWI_NG" ]; then
-    SUFFIX=".docker${SUFFIX}"
-fi
 
 shopt -s nullglob
 shopt -s extglob
 
-IMAGE=$(echo ${PREFIX}*${SUFFIX})
 METADATA=$(echo ${PREFIX}.metadata)
 TAGFILE=$(echo ${PREFIX}.tag)
 PACKAGES=$(echo ${PREFIX}*.packages)
@@ -76,13 +93,12 @@ if [ -z "$CONTAINER_TAG" ]; then
 fi
 
 echo "Attempting to wrap $IMAGE in a containment rpm ..."
-
-SUSE_VERSION="${CONTAINER_TAG}"
-SUSE_PRODUCT_NAME="${CONTAINER_NAME}"
+SUSE_VERSION="$(echo ${CONTAINER_TAG} | sed "s,.*:,,g")"
+SUSE_PRODUCT_NAME=$(echo ${CONTAINER_TAG} | sed "s,/.*,,g;s,/,-,g")
 
 NAME="${CONTAINER_NAME}-image"
 VERSION="${PKG_VERSION}"
-RELEASE=$(echo "$PACKAGES" | sed 's/.*-Build\(.*\).packages/\1/')
+RELEASE="${PKG_RELEASE}"
 
 if [ -z "$RELEASE" ]; then
     echo "Could not parse release number, setting it to zero"
@@ -125,7 +141,7 @@ EOF
 
 # Generate tagfile for automation to determine the latest, most specific, tag for
 # the currently installed RPM
-echo -n "${CONTAINER_TAG}-${RELEASE}" > $TAGFILE
+cat $IMAGE_DIR/*.containerinfo | jq -r '.tags[0]' > $TAGFILE
 
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates

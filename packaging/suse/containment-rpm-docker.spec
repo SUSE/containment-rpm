@@ -1,7 +1,7 @@
 #
-# spec file for package containment-rpm-docker
+# spec file for package containment-rpm
 #
-# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2023 SUSE LINUX Products GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -17,17 +17,21 @@
 
 # norootforbuild
 
-Name:           containment-rpm-docker
-Version:        1.3.4+git_r54_95fb234
+Name:           containment-rpm
+Version:        2.0.0
 Release:        0
 License:        MIT
-Summary:        Wraps OBS/kiwi-built images in rpms
+Summary:        Wraps OBS docker/kiwi-built images in rpms
 Url:            https://github.com/SUSE/containment-rpm-docker
 Group:          System/Management
-Source:         master.tar.gz
+Source:         %{name}-%{version}.tar.bz2
+Source1:	image.spec.in
+Source2:	container_post_run
 BuildRequires:  filesystem
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
+# disabled for now, not used for public cloud purpose
+%if 0
 %if 0%{?suse_version} >= 1230
 Requires:       rubygem(changelog_generator)
 %else
@@ -35,30 +39,34 @@ Requires:       rubygem-changelog_generator
 %endif
 Requires:       changelog-generator-data
 Requires:       libxml2-tools
+%endif
+Requires:	jq
+Requires:	libxml2-tools
 
 %description
-OBS kiwi_post_run hook to wrap a kiwi-produced image in an rpm package.
+OBS container_post_run hook to wrap a kiwi or docker image in an rpm package.
 
 This package should be required by the Build Service project's meta
-prjconf, so that the kiwi_post_run hook is present in the kiwi image
+prjconf, so that the container_post_run hook is present in the container image
 and gets executed at the end of the image build.  It will then build
-an rpm which contains the newly-produced image from kiwi (using
+an rpm which contains the newly-produced image from kiwi/docker (using
 image.spec.in), and place the rpm in the correct location that it
 becomes an additional build artefact.
 
 %prep
-%setup -q -n %{name}-master
+%setup -q
 
 %build
 
 %install
-mkdir -p %{buildroot}/usr/lib/build/
-install -m 644 image.spec.in %{buildroot}/usr/lib/build/
-install -m 755 kiwi_post_run %{buildroot}/usr/lib/build/
+mkdir -p %{buildroot}/usr/lib/build/post_build.d
+install -m 644 %{SOURCE1} %{buildroot}/usr/lib/build/
+install -m 755 %{SOURCE2} %{buildroot}/usr/lib/build/post_build.d/
 
 %files
 %defattr(-,root,root)
-/usr/lib/build/kiwi_post_run
+%dir /usr/lib/build/post_build.d
+/usr/lib/build/post_build.d/*_post_run
 /usr/lib/build/image.spec.in
 
 %changelog
