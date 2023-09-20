@@ -47,6 +47,8 @@ IMAGE=$(cat $IMAGE_DIR/*.containerinfo | jq -r '.file')
 PKG_VERSION=$( cat $IMAGE_DIR/*.containerinfo | jq -r '.version')
 PKG_RELEASE=$( cat $IMAGE_DIR/*.containerinfo | jq -r '.release')
 SUFFIX=".tar"
+CONTAINER_TAGS=$(cat $IMAGE_DIR/*.containerinfo | jq -r '.tags' | tr '\n' ' ' | sed -e 's,"[^"]*:,",g')
+CONTAINER_TAG=$(cat $IMAGE_DIR/*.containerinfo | jq -r '.tags[0]' | sed -e 's,.*:,,g;s,",,g' )
 
 if [ -d $TOPDIR/KIWI ]; then
   # Parse KIWI config.xml to get docker images details
@@ -61,13 +63,12 @@ if [ -d $TOPDIR/KIWI ]; then
       SUFFIX=".docker${SUFFIX}"
   fi
 else
-  PKG_NAME=$(echo $IMAGE | sed "s/-$PKG_VERSION.$ARCH-$PKG_RELEASE.*//g")
+  PKG_NAME=$(echo $IMAGE | sed "s@-$CONTAINER_TAG.$ARCH-$PKG_RELEASE.*@@g")
   # only usable on kiwi build
   CONTAINER_RAW="$PKG_NAME"
-  PREFIX="${PKG_NAME}-${PKG_VERSION}.${ARCH}-${PKG_RELEASE}"
+  PREFIX="${PKG_NAME}-${CONTAINER_TAG}.${ARCH}-${PKG_RELEASE}"
 fi
-CONTAINER_TAG=$( cat $IMAGE_DIR/*.containerinfo | jq -r '.tags[0]' )
-CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's/\//-/' )
+CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's@\/@-@' )
 
 
 shopt -s nullglob
@@ -133,7 +134,7 @@ cat << EOF > $METADATA
 {
   "image": {
     "name": "$CONTAINER_RAW",
-    "tags": [ "$CONTAINER_TAG", "${CONTAINER_TAG}-${RELEASE}", "latest" ],
+    "tags": $CONTAINER_TAGS,
     "file": "$IMAGE"
   }
 }
@@ -141,7 +142,7 @@ EOF
 
 # Generate tagfile for automation to determine the latest, most specific, tag for
 # the currently installed RPM
-cat $IMAGE_DIR/*.containerinfo | jq -r '.tags[0]' > $TAGFILE
+echo $CONTAINER_TAG > $TAGFILE
 
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
