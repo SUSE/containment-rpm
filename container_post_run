@@ -68,7 +68,7 @@ else
   CONTAINER_RAW="$PKG_NAME"
   PREFIX="${PKG_NAME}-${CONTAINER_TAG}.${ARCH}-${PKG_RELEASE}"
 fi
-CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's@\/@-@' )
+CONTAINER_NAME=$(echo $CONTAINER_RAW | sed 's@\/@-@g' )
 
 
 shopt -s nullglob
@@ -146,17 +146,17 @@ echo $CONTAINER_TAG > $TAGFILE
 
 # Keep __SLE_VERSION__ in there for backwards compatiblity
 # with older spec file templates
-sed -e "s/__NAME__/$NAME/g" \
-    -e "s/__OLD_NAME__/$OLD_NAME/g" \
-    -e "s/__PKG_NAME__/$PKG_NAME/g" \
-    -e "s/__VERSION__/$VERSION/g" \
-    -e "s/__RELEASE__/$RELEASE/g" \
-    -e "s/__SOURCE0__/$IMAGE/g" \
-    -e "s/__SOURCE1__/$METADATA/g" \
-    -e "s/__SOURCE2__/$TAGFILE/g" \
-    -e "s/__SLE_VERSION__/$SUSE_VERSION/g" \
-    -e "s/__SUSE_VERSION__/$SUSE_VERSION/g" \
-    -e "s/__SUSE_PRODUCT_NAME__/$SUSE_PRODUCT_NAME/g" \
+sed -e "s@__NAME__@$NAME@g" \
+    -e "s@__OLD_NAME__@$OLD_NAME@g" \
+    -e "s@__PKG_NAME__@$PKG_NAME@g" \
+    -e "s@__VERSION__@$VERSION@g" \
+    -e "s@__RELEASE__@$RELEASE@g" \
+    -e "s@__SOURCE0__@$IMAGE@g" \
+    -e "s@__SOURCE1__@$METADATA@g" \
+    -e "s@__SOURCE2__@$TAGFILE@g" \
+    -e "s@__SLE_VERSION__@$SUSE_VERSION@g" \
+    -e "s@__SUSE_VERSION__@$SUSE_VERSION@g" \
+    -e "s@__SUSE_PRODUCT_NAME__@$SUSE_PRODUCT_NAME@g" \
     < $SPEC_IN \
     > $BUILD_DIR/image.spec
 
